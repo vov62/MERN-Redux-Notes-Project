@@ -5,6 +5,7 @@ const express = require('express');
 const app = express();
 const notes = require('./data/notes');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
 //import db connection
 const dbConnection = require('./DB');
@@ -43,3 +44,6 @@ app.use('/api/users', usersRouter);
 // errors handler use
 app.use(notFound)
 app.use(errorHandler)
+//use of body-parser in order to reach req.body
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }))

@@ -1,10 +1,10 @@
 const usersRouter = require('express').Router();
-const { registerUser, authUser } = require('../controllers/usersCtrl');
+const usersCtrl = require('../controllers/usersCtrl');
 
 // registration route
-usersRouter.route('/').post(registerUser);
+usersRouter.post('/', usersCtrl.registerUser);
 // login route
-usersRouter.route('/login').post(authUser);
+usersRouter.post('/login', usersCtrl.authUser);
 
 
 module.exports = usersRouter;
