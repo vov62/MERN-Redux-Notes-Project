@@ -1,0 +1,43 @@
+.main{
+    min-height: 93vh;
+    display: flex;
+    align-items: center;
+    background-image: url(../../images/note\ bg.jpeg);
+    background-size: cover;
+    background-position: center;
+    font-family: 'Roboto Slab', serif;
+}
+
+.welcome-text{
+    width: 100%;
+    text-align: center;
+    color: #000;
+}
+.welcome-text h1{
+    font-size: 95px;
+}
+.welcome-text p{
+    font-size: 25px;
+    padding-top: 10px;
+}
+
+.btn-container{
+    margin-top: 50px;
+    display: flex;
+    justify-content: space-evenly;
+}
+.homeBtn{
+    width: 200px;
+    height: 55px;
+}
+
+@media only screen and (max-width:768){
+
+    .welcome-text h1{
+        font-size: 80px;
+    }
+   .homeBtn{
+        width: 150px;
+        height: 50px;
+    }
+} 
