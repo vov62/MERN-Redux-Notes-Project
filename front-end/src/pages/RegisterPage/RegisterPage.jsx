@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainPage from '../../component/MainPage';
 import { Form, Button, Row, Col } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import './Register.css';
 import ErrorMessage from '../../component/ErrorMessage';
 import Loading from '../../component/Loading';
+import { useDispatch, useSelector } from 'react-redux';
+import { register } from '../../redux/actions/userAction';
+
 
 export default function RegisterPage() {
 
@@ -16,44 +19,35 @@ export default function RegisterPage() {
     //error state message
     const [message, setMessage] = useState(null);
     const [picMessage, setPicMessage] = useState(null);
-    const [error, setError] = useState(false);
-    const [loading, setLoading] = useState(false);
+
+    // using dispatch to call userRegistration action
+    const dispatch = useDispatch();
+
+    // access to the state 
+    // name of the reducer 'userRegistration'
+    const userRegistration = useSelector(state => state.userRegistration);
+    // destructure out the variables from this state
+    const { loading, error, userInfo } = userRegistration;
+
+    const history = useHistory();
+
+    useEffect(() => {
+        if (userInfo) {
+            history.push('/mynotes')
+        }
+    }, [history, userInfo])
 
     const submitHandler = async (e) => {
         e.preventDefault();
 
+        // check if password match
         if (password !== confirmPassword) {
-            setMessage('Passwords Dont Match !');
+            setMessage("Password Do Not Match");
+            // if password match,call the action ,send the params to the action
         } else {
-            setMessage(null);
-
-            // creating user register and save to db .
-            try {
-                const userData = { name, email, password, picture }
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'Content-type': 'application/json'
-                    },
-                    body: JSON.stringify(userData)
-                };
-                setLoading(true);
-
-                //user enter name,email,password and picture, send to the server.  
-                const postUserData = await fetch('http://localhost:5000/api/users', options);
-                const dataSaveToDb = await postUserData.json();
-
-                console.log(dataSaveToDb);
-                setLoading(false);
-
-                //store the data in local storage. convert it to string because local storage cannot store object
-                localStorage.setItem('userInfo', JSON.stringify(dataSaveToDb));
-
-            } catch (err) {
-                setError(err.response.data.message);
-            }
+            dispatch(register(name, email, password, picture))
         }
-    }
+    };
 
     //picture upload
     const postPictureDetails = (pic) => {

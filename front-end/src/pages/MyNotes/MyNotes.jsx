@@ -1,92 +1,151 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import MainPage from '../../component/MainPage';
-import { Badge, Button, Card, Accordion, AccordionCollapse, AccordionButton } from 'react-bootstrap';
+import React, { useEffect } from "react";
+import { Link, useHistory } from "react-router-dom";
+import MainPage from "../../component/MainPage";
+import {
+  Badge,
+  Button,
+  Card,
+  Accordion,
+  AccordionCollapse,
+  AccordionButton,
+} from "react-bootstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { listNotes, deleteNoteAction } from "../../redux/actions/notesAction";
+import Loading from "../../component/Loading";
+import ErrorMessage from "../../component/ErrorMessage";
 
-export default function MyNotes() {
+export default function MyNotes({ search }) {
+  //take notes out from our state
+  const dispatch = useDispatch();
+  // name to the state
+  const noteList = useSelector((state) => state.noteList);
+  // console.log(noteList);
 
-    const [notes, setNotes] = useState([]);
+  //destructing what we need from state
+  const { loading, error, notes } = noteList;
+  // console.log(notes);
 
-    const deleteHandler = (id) => {
-        if (window.confirm("Are you sure?")) {
+  const userLogin = useSelector((state) => state.userLogin);
+  const { userInfo } = userLogin;
 
-        }
+  // getting state to show our note that was created immediately on the screen
+  const noteCreate = useSelector((state) => state.noteCreate);
+  const { success: successCreate } = noteCreate;
 
+  //  update the note
+  const noteUpdate = useSelector((state) => state.noteUpdate);
+  const { success: successUpdate } = noteUpdate;
+
+  //   delete note
+  const noteDelete = useSelector((state) => state.noteDelete);
+
+  const {
+    loading: loadingDelete,
+    error: errorDelete,
+    success: successDelete,
+  } = noteDelete;
+
+  const history = useHistory();
+
+  const deleteHandler = (id) => {
+    if (window.confirm("Are You Sure?")) {
+      dispatch(deleteNoteAction(id));
     }
-    // connecting dummny data from backend to frontend just for the start to show some data
-    //as soon as the page render we are calling our api
-    const fetchNotesFromBackend = async () => {
-        try {
-            const data = await fetch('http://localhost:5000/api/notes/')
-                .then(res => { return res.json() })
-                .then(result => { return result })
-            setNotes(data)
-        }
-        catch (err) {
-            console.error(err);
-        }
+  };
+
+  useEffect(() => {
+    dispatch(listNotes());
+    if (!userInfo) {
+      history.push("/");
     }
-    // console.log(notes);
+  }, [
+    dispatch,
+    history,
+    userInfo,
+    successCreate,
+    successUpdate,
+    successDelete,
+  ]);
 
-    useEffect(() => {
-        fetchNotesFromBackend()
-    }, [])
+  // render the notes that come from the backend
+  return (
+    <MainPage title={`Welcome Back ${userInfo.name}..`}>
+      <Link to="createnote">
+        <Button
+          className="btn btn-info"
+          style={{ marginLeft: 10, marginBottom: 10 }}
+          size="lg"
+        >
+          Create new Note
+        </Button>
+      </Link>
 
+      {error && <ErrorMessage variant="danger">{error}</ErrorMessage>}
+      {errorDelete && (
+        <ErrorMessage variant="danger">{errorDelete}</ErrorMessage>
+      )}
+      {loading && <Loading />}
+      {loadingDelete && <Loading />}
+      {notes &&
+        notes
+          .reverse()
+          .filter((filterNote) =>
+            filterNote.title.toLowerCase().includes(search.toLowerCase())
+          )
+          .map((note) => (
+            <Accordion key={note._id}>
+              <Card style={{ margin: 10 }}>
+                <Card.Header style={{ display: "flex" }}>
+                  <span
+                    style={{
+                      color: "black",
+                      textDecoration: "none",
+                      flex: 1,
+                      cursor: "pointer",
+                      alignSelf: "center",
+                      fontSize: 18,
+                    }}
+                  >
+                    <AccordionButton as={Card.Text} variant="link">
+                      {note.title}
+                    </AccordionButton>
+                  </span>
+                  <div>
+                    {/* edit button */}
+                    <Button href={`/note/${note._id}`}>Edit</Button>
 
-    // render the notes that come from the backend 
-    return (
-        <MainPage title="welcome back avi vovgen...">
-            <Link to='createNewNot'>
-                <Button className="btn btn-info" style={{ marginLeft: 10, marginBottom: 10 }} size="lg" >
-                    Create new Note
-                </Button>
-            </Link>
+                    {/* delete button */}
+                    <Button
+                      variant="danger"
+                      className="mx-2"
+                      onClick={() => deleteHandler(note._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </Card.Header>
 
-            {notes.map((note) => (
-                <Accordion key={note._id}>
-                    <Card style={{ margin: 10 }}>
-                        <Card.Header style={{ display: "flex" }}>
-                            <span
-                                style={{
-                                    color: "black",
-                                    textDecoration: "none",
-                                    flex: 1,
-                                    cursor: "pointer",
-                                    alignSelf: "center",
-                                    fontSize: 18
-                                }}>
-                                <AccordionButton as={Card.Text} variant="link" >
-                                    {note.title}
-                                </AccordionButton>
-                            </span>
-                            <div>
-                                <Button href={`/note/${note._id}`}>Edit</Button>
-                                <Button variant="danger" className="mx-2" onClick={() => deleteHandler(note._id)}>Delete</Button>
-                            </div>
-                        </Card.Header>
-
-                        <AccordionCollapse eventKey="">
-                            <Card.Body>
-                                <h4>
-                                    <Badge className="btn btn-success">
-                                        category-{note.category}
-                                    </Badge>
-                                </h4>
-                                <blockquote className="blockquote mb-0">
-                                    <p>
-                                        {note.content}
-                                    </p>
-                                    <footer className="blockquote-footer">
-                                        Created on-date
-                                    </footer>
-                                </blockquote>
-                            </Card.Body>
-                        </AccordionCollapse>
-                    </Card>
-
-                </Accordion>
-            ))
-            }
-        </MainPage >
-    )
+                <AccordionCollapse eventKey="">
+                  <Card.Body>
+                    <h4>
+                      <Badge className="btn btn-success">
+                        category-{note.category}
+                      </Badge>
+                    </h4>
+                    <blockquote className="blockquote mb-0">
+                      <p>{note.content}</p>
+                      <footer className="blockquote-footer">
+                        Created on{" "}
+                        <cite title="Source Title">
+                          {note.createdAt.substring(0, 10)}
+                        </cite>
+                      </footer>
+                    </blockquote>
+                  </Card.Body>
+                </AccordionCollapse>
+              </Card>
+            </Accordion>
+          ))}
+    </MainPage>
+  );
 }
